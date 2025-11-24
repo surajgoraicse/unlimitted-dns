@@ -1,5 +1,5 @@
 {
-  "name": "my-turborepo",
+  "name": "unlimitted_dns",
   "private": true,
   "scripts": {
     "build": "turbo run build",
