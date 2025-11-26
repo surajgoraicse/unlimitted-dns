@@ -22,7 +22,7 @@ export const subDomain = pgTable("sub_domain", {
 	desiredRecordType: recordTypeEnum("desired_record_type"),
 	desiredTarget: text("desired_target"),
 	desiredProxied: boolean("desired_proxied").default(true),
-	desiredTTL: integer("desired_ttl").default(300),
+	desiredTTL: integer("desired_ttl"),
 
 	status: status("status").default("PENDING"),
 	createdAt: timestamp("created_at").defaultNow().notNull(),

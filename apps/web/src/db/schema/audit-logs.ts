@@ -8,8 +8,8 @@ export const auditLogs = pgTable("audit_logs", {
 	actorId: text("actor_id").references(() => user.id, {
 		onDelete: "no action",
 	}),
-	actionActions: auditActions("audit_actions").notNull(),
-	resourceType: auditResourceType("esource_type").notNull(),
+	actionActions: auditActions("action").notNull(),
+	resourceType: auditResourceType("resource_type").notNull(),
 	oldValue: text("old_value"),
 	newValue: text("new_value"),
 	meta: text("meta"),

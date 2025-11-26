@@ -6,7 +6,7 @@ import {
 } from "./enums";
 import { subDomain } from "./sub-domain";
 
-export const verification = pgTable("verification", {
+export const verificationRecord = pgTable("verification_record", {
 	id: uuid("id").defaultRandom().primaryKey(),
 	subDomainId: uuid("sub_domain_id").references(() => subDomain.id, {
 		onDelete: "cascade",
@@ -14,9 +14,9 @@ export const verification = pgTable("verification", {
 	platform: platformEnum("platform").notNull(),
 	verificationType: verificationTypeEnum("verification_type").notNull(),
 	name: text("name").unique().notNull(),
-	content: text("content").unique().notNull(),
+	content: text("content").notNull(),
 	ttl: integer("ttl").default(60),
-	providerRecordId: uuid("provider_record_id").notNull().unique(),
+	providerRecordId: text("provider_record_id").notNull().unique(),
 	status: verificationStatus("status").default("PENDING"),
 	createdAt: timestamp("created_at").defaultNow().notNull(),
 	updatedAt: timestamp("updated_at")
