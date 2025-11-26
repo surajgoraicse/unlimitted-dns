@@ -1,0 +1,26 @@
+import { integer, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import {
+	platformEnum,
+	verificationStatus,
+	verificationTypeEnum,
+} from "./enums";
+import { subDomain } from "./sub-domain";
+
+export const verification = pgTable("verification", {
+	id: uuid("id").defaultRandom().primaryKey(),
+	subDomainId: uuid("sub_domain_id").references(() => subDomain.id, {
+		onDelete: "cascade",
+	}),
+	platform: platformEnum("platform").notNull(),
+	verificationType: verificationTypeEnum("verification_type").notNull(),
+	name: text("name").unique().notNull(),
+	content: text("content").unique().notNull(),
+	ttl: integer("ttl").default(60),
+	providerRecordId: uuid("provider_record_id").notNull().unique(),
+	status: verificationStatus("status").default("PENDING"),
+	createdAt: timestamp("created_at").defaultNow().notNull(),
+	updatedAt: timestamp("updated_at")
+		.defaultNow()
+		.$onUpdate(() => /* @__PURE__ */ new Date())
+		.notNull(),
+});
