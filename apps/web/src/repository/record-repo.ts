@@ -1,41 +1,22 @@
 import { db } from "@/db/db";
-import { record, SelectRecord } from "@/db/schema";
+import { InsertRecord, record, SelectRecord } from "@/db/schema";
 import { RecordTypes } from "@/types/constants";
 import {
 	cnameContentSchema,
-	CreateRecord,
 	ipv4Schema,
 	ipv6Schema,
 	txtSchema,
 } from "@/types/zodSchemas";
 import { ZodError } from "zod";
 
-// const RecordSchema = z.object({
-// 	id: z.uuid().trim(),
-// 	subDomainId: z.uuid(),
-// 	providerRecordId: z.string(),
-// 	type: z.enum(RECORD_TYPES),
-// 	content: z.string().trim(),
-// 	ttl: z.number(),
-// 	proxied: z.boolean(),
-// 	raw: z.json(),
-// 	status: z.enum(STATUS),
-// 	version: z.number(),
-// 	lastSyncedAt : z.date()
-
-// })
-
 interface IRecordRepository {
 	getAllRecordsFromSubDomainId(id: string): Promise<SelectRecord[] | null>;
-	createRecordDb(data: CreateRecord): Promise<SelectRecord | null>;
-	validateRecordType() : Promise<boolean>
-	validateRecordName() : Promise<boolean>
-	validateRecordContext() : Promise<boolean>
+	getAllRecordsIdFromSubDomainId(id: string): Promise<{ id: string }[]>;
+	createRecordDb(data: InsertRecord): Promise<SelectRecord | null>;
+	validateRecordType(): Promise<boolean>;
+	validateRecordName(): Promise<boolean>;
+	validateRecordContext(): Promise<boolean>;
 }
-
-
-
-
 
 export async function getAllRecordsFromSubDomainId(id: string) {
 	if (!id) {
@@ -43,6 +24,9 @@ export async function getAllRecordsFromSubDomainId(id: string) {
 	}
 	const records = await db.query.record.findMany({
 		where: (records, { eq }) => eq(records.subDomainId, id),
+		columns: {
+			id: true,
+		},
 	});
 	return records;
 }

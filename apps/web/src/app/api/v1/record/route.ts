@@ -1,14 +1,12 @@
 import handleError, { ApiError } from "@/lib/api-error";
 import ApiResponse from "@/lib/api-response";
-import { cloudflareClient } from "@/lib/cloudflare";
 import {
-	createRecordDb,
 	validateRecordContent,
 	validateRecordName,
 } from "@/repository/record-repo";
 import { getSubDomainFromId } from "@/repository/subdomain-repo";
+import { cloudflareClient } from "@/service/cloudflare-service";
 import { createRecordReqBody } from "@/types/zodSchemas";
-import { RecordResponsesSinglePage } from "cloudflare/resources/dns.mjs";
 import { NextRequest } from "next/server";
 
 // get all registered dns record
@@ -36,7 +34,16 @@ export async function POST(req: NextRequest) {
 	 * 		- if it is a cname then do not allow any other record (allow txt for verification)
 	 * 		- do not allow duplicate records
 	 * 		- otherwise allow based on some rule
-	 * 		-
+	 * validate record name
+	 * validate record content
+	 * create record using cf api
+	 * success :
+	 * 		save in the db
+	 * 			- if falied to save in the db
+	 * 			remove the cf record.
+	 * 
+	 * methods req : validateRecordName, validateRecordContent,  createCFRecord(), createDBRecord()
+	 * 
 	 */
 
 	try {
@@ -90,13 +97,11 @@ export async function POST(req: NextRequest) {
 			ttl,
 			proxied,
 			content,
-			comment 
+			comment,
 		});
 		console.log("................record created.....................");
 		console.log(record);
 		console.log("................record created.....................");
-
-
 
 		return Response.json(new ApiResponse(201, "record created", record));
 	} catch (error) {

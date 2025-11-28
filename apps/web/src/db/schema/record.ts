@@ -11,7 +11,7 @@ import {
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import z from "zod";
 import { recordTypeEnum, status } from "./enums";
-import { subDomain } from "./subdomain";
+import { subDomain } from "./sub-domain";
 
 export const record = pgTable("record", {
 	id: uuid("id").defaultRandom().primaryKey(),
@@ -28,7 +28,6 @@ export const record = pgTable("record", {
 	raw: json("raw"),
 	status: status("status").default("PENDING").notNull(),
 	version: smallint("version").default(1).notNull(),
-	lastSyncedAt: timestamp("last_synced_at").defaultNow(),
 	createdAt: timestamp("created_at").defaultNow().notNull(),
 	updatedAt: timestamp("updated_at")
 		.defaultNow()

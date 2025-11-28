@@ -31,4 +31,14 @@ export async function GET(
 	}
 }
 
-
+export async function DELETE(
+	req: NextRequest,
+	{ params }: { params: { id: string } }
+) {
+	// get all the records id assocaited with the subdomain using the subDomainId field in the reocrd table.
+	// delete all of them one by one from the cloudflare using the cloudflare api
+	// once all records are removed
+	// delete the sub domain from the db which will also remove all records associated with it.
+	// return subdomain details 
+	// methods required : deleteCFRecord(), getAllRecordsIdFromSubDomainId()
+}

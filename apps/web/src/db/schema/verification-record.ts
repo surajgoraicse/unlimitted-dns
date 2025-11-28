@@ -1,12 +1,12 @@
 import { integer, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { createInsertSchema, createSelectSchema } from "drizzle-zod";
+import z from "zod";
 import {
 	platformEnum,
 	verificationStatus,
 	verificationTypeEnum,
 } from "./enums";
-import { subDomain } from "./subdomain";
-import { createInsertSchema, createSelectSchema } from "drizzle-zod";
-import z from "zod";
+import { subDomain } from "./sub-domain";
 
 export const verificationRecord = pgTable("verification_record", {
 	id: uuid("id").defaultRandom().primaryKey(),
@@ -27,9 +27,13 @@ export const verificationRecord = pgTable("verification_record", {
 		.notNull(),
 });
 
-
-
-export const SelectVerificationRecordSchema = createSelectSchema(verificationRecord);
-export type SelectVerificationRecord = z.infer<typeof SelectVerificationRecordSchema>;
-export const InsertVerificationRecordSchema = createInsertSchema(verificationRecord);
-export type InsertVerificationRecord = z.infer<typeof InsertVerificationRecordSchema>;
+export const SelectVerificationRecordSchema =
+	createSelectSchema(verificationRecord);
+export type SelectVerificationRecord = z.infer<
+	typeof SelectVerificationRecordSchema
+>;
+export const InsertVerificationRecordSchema =
+	createInsertSchema(verificationRecord);
+export type InsertVerificationRecord = z.infer<
+	typeof InsertVerificationRecordSchema
+>;

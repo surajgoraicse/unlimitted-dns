@@ -1,7 +1,16 @@
 // src/repository/subdomain.ts (or similar)
 import { db } from "@/db/db";
-import { subDomain } from "@/db/schema";
+import { InsertSubDomain, SelectSubDomain, subDomain } from "@/db/schema";
 import { CreateSubdomain } from "@/types/zodSchemas";
+
+
+interface ISubDomainRepository{
+	createSubdomain() : Promise<SelectSubDomain | null>
+	checkSubDomainExistFromName(name : string) : Promise<boolean>
+	checkSubDomainExistFromSubName(subName : string) : Promise<boolean>
+	
+}
+
 
 export async function createSubDomain(data: CreateSubdomain) {
 	const { name, ownerId, fqdn } = data;

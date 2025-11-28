@@ -19,8 +19,8 @@ export const subDomain = pgTable("sub_domain", {
 		.references(() => user.id, {
 			onDelete: "cascade",
 		}),
-	subDomainName: text("sub_domain_name").notNull().unique(),
-	fqdn: text("fqdn").notNull().unique(),
+	subName: text("sub_name").notNull().unique(),
+	name: text("name").notNull().unique(),
 
 	// desired state
 	desiredRecordType: recordTypeEnum("desired_record_type"),
