@@ -8,11 +8,17 @@ import {
 	ipv6Schema,
 	txtSchema,
 } from "@/types/zod-schema";
+type UpdateRecord = Pick<
+	InsertRecord,
+	"comment" | "content" | "proxied" | "ttl" | "type"
+>;
 
 interface IRecordRepository {
 	getAllRecordsFromSubDomainId(id: string): Promise<SelectRecord[]>;
 	getAllRecordsIdFromSubDomainId(id: string): Promise<{ id: string }[]>;
 	createRecordDb(record: InsertRecord): Promise<SelectRecord | undefined>;
+	updateRecordDb(record: UpdateRecord, id: string): Promise<SelectRecord>;
+	deleteRecordDb(id: string): Promise<SelectRecord | null>;
 	validateRecordType(
 		type: RecordTypes,
 		subDomainId: string
@@ -30,6 +36,39 @@ class RecordRepo implements IRecordRepository {
 	db: DB;
 	constructor(db: DB) {
 		this.db = db;
+	}
+	async updateRecordDb(
+		recordData: UpdateRecord,
+		id: string
+	): Promise<SelectRecord> {
+		const updatedRecord = await this.db
+			.update(record)
+			.set({
+				comment: recordData.comment,
+				content: recordData.content,
+				proxied: recordData.proxied,
+				ttl: recordData.ttl,
+				type: recordData.type,
+			})
+			.where((r, { eq }) => eq(r.id, id))
+			.returning();
+		return updatedRecord[0];
+	}
+	async deleteRecordDb(id: string): Promise<SelectRecord | null> {
+		// 1. Use a more descriptive plural variable name (optional, but good practice)
+		const deletedRecords = await this.db
+			.delete(record)
+			.where((record, { eq }) => eq(record.id, id))
+			.returning();
+
+		// 2. Explicitly check if the record was found and deleted
+		if (deletedRecords.length === 0) {
+			// Return null instead of undefined if no record matched the ID
+			return null;
+		}
+
+		// 3. Return the deleted record
+		return deletedRecords[0];
 	}
 	async getAllRecordsFromSubDomainId(id: string) {
 		return await db.query.record.findMany({

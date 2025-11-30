@@ -6,7 +6,32 @@ interface ISubDomainRepository {
 	createSubdomain(): Promise<SelectSubDomain | null>;
 	checkSubDomainExistFromName(name: string): Promise<boolean>;
 	checkSubDomainExistFromSubName(subName: string): Promise<boolean>;
+	deleteSubDomainDb(id: string): Promise<SelectSubDomain | null>;
 }
+
+class SubDomainRepository implements ISubDomainRepository {
+	async createSubdomain(): Promise<SelectSubDomain | null> {
+		throw new Error("Method not implemented.");
+	}
+	async checkSubDomainExistFromName(name: string): Promise<boolean> {
+		throw new Error("Method not implemented.");
+	}
+	async checkSubDomainExistFromSubName(subName: string): Promise<boolean> {
+		throw new Error("Method not implemented.");
+	}
+	async deleteSubDomainDb(id: string): Promise<SelectSubDomain | null> {
+		const deletedSubDomain = await db
+			.delete(subDomain)
+			.where((subDomain, { eq }) => eq(subDomain.id, id))
+			.returning();
+		if (deletedSubDomain.length === 0) {
+			return null;
+		}
+		return deletedSubDomain[0];
+	}
+}
+
+export const subDomainRepository = new SubDomainRepository();
 
 export async function insertSubDomain(data: InsertSubDomain) {
 	const { name, ownerId } = data;

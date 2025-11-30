@@ -1,6 +1,8 @@
 import handleError from "@/lib/api-error";
 import ApiResponse from "@/lib/api-response";
-import { cloudflareClient } from "@/lib/cloudflare";
+import { recordRepo } from "@/repository/record-repo";
+import { subDomainRepository } from "@/repository/subdomain-repo";
+import cloudflareService from "@/service/cloudflare-service";
 import { NextRequest } from "next/server";
 
 export async function GET(
@@ -19,15 +21,22 @@ export async function GET(
 			);
 		}
 
-		const recordResponse = await cloudflareClient.dns.records.get(
-			recordId,
-			{
-				zone_id: process.env.ZONE_ID!,
-			}
-		);
-		return Response.json(new ApiResponse(200, "success", recordResponse));
+		const record = await cloudflareService.findCFRecord(recordId);
+		if (!record) {
+			return Response.json(
+				new ApiResponse(404, "Record Not Found", false),
+				{
+					status: 404,
+					statusText: "Not Found",
+				}
+			);
+		}
+		return Response.json(new ApiResponse(200, "success", record), {
+			status: 200,
+			statusText: "success",
+		});
 	} catch (error) {
-		handleError(error);
+		return handleError(error);
 	}
 }
 
@@ -39,6 +48,62 @@ export async function DELETE(
 	// delete all of them one by one from the cloudflare using the cloudflare api
 	// once all records are removed
 	// delete the sub domain from the db which will also remove all records associated with it.
-	// return subdomain details 
+	// return subdomain details
 	// methods required : deleteCFRecord(), getAllRecordsIdFromSubDomainId()
+	try {
+		const recordId = (await params)?.id;
+		if (!recordId) {
+			return Response.json(
+				new ApiResponse(400, "Sub Domain ID not found", false),
+				{
+					status: 400,
+					statusText: "Bad Request",
+				}
+			);
+		}
+
+		const recordsToDelete =
+			await recordRepo.getAllRecordsIdFromSubDomainId(recordId);
+
+		for (const record of recordsToDelete) {
+			try {
+				await cloudflareService.deleteCFRecord(record.id);
+				console.log(`Deleted Cloudflare record with ID: ${record.id}`);
+			} catch (cfError) {
+				console.error(
+					`Failed to delete Cloudflare record ${record.id}:`,
+					cfError
+				);
+				// Depending on requirements, you might want to stop here or continue
+				// For now, we'll log and continue, but this might leave orphaned CF records
+			}
+		}
+
+		const deletedSubDomain =
+			await subDomainRepository.deleteSubDomainDb(recordId);
+
+		if (!deletedSubDomain) {
+			return Response.json(
+				new ApiResponse(404, "Sub Domain not found in DB", false),
+				{
+					status: 404,
+					statusText: "Not Found",
+				}
+			);
+		}
+
+		return Response.json(
+			new ApiResponse(
+				200,
+				"Sub Domain and associated records deleted successfully",
+				deletedSubDomain
+			),
+			{
+				status: 200,
+				statusText: "Success",
+			}
+		);
+	} catch (error) {
+		return handleError(error);
+	}
 }

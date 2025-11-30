@@ -7,6 +7,9 @@ export const cloudflareClient = new Cloudflare({
 const client = cloudflareClient;
 
 interface ICloudflareService {
+	findCFRecord(
+		recordId: string
+	): Promise<Cloudflare.DNS.Records.RecordResponse>;
 	createCFRecord(
 		record: CFRecord
 	): Promise<Cloudflare.DNS.Records.RecordResponse>;
@@ -25,9 +28,14 @@ class CloudflareService implements ICloudflareService {
 	constructor(zone_id: string) {
 		this.zone_id = zone_id;
 	}
+	async findCFRecord(recordId: string) {
+		return await client.dns.records.get(recordId, {
+			zone_id: this.zone_id,
+		});
+	}
 
 	async createCFRecord(record: CFRecord) {
-		const recordResponse = await client.dns.records.create({
+		return await client.dns.records.create({
 			name: record.name,
 			zone_id: this.zone_id,
 			type: record.type,
@@ -36,7 +44,6 @@ class CloudflareService implements ICloudflareService {
 			content: record.content,
 			comment: record.comment || "",
 		});
-		return recordResponse;
 	}
 
 	async listAllCFRecords() {
