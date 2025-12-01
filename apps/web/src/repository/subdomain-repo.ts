@@ -1,12 +1,14 @@
 // src/repository/subdomain.ts (or similar)
 import { db } from "@/db/db";
 import { InsertSubDomain, SelectSubDomain, subDomain } from "@/db/schema";
+import { eq } from "drizzle-orm";
 
 interface ISubDomainRepository {
 	createSubdomain(): Promise<SelectSubDomain | null>;
 	checkSubDomainExistFromName(name: string): Promise<boolean>;
 	checkSubDomainExistFromSubName(subName: string): Promise<boolean>;
 	deleteSubDomainDb(id: string): Promise<SelectSubDomain | null>;
+	getSubDomainFromId(id: string): Promise<SelectSubDomain | null>;
 }
 
 class SubDomainRepository implements ISubDomainRepository {
@@ -20,14 +22,35 @@ class SubDomainRepository implements ISubDomainRepository {
 		throw new Error("Method not implemented.");
 	}
 	async deleteSubDomainDb(id: string): Promise<SelectSubDomain | null> {
-		const deletedSubDomain = await db
-			.delete(subDomain)
-			.where((subDomain, { eq }) => eq(subDomain.id, id))
-			.returning();
-		if (deletedSubDomain.length === 0) {
+		try {
+			const deletedSubDomain = await db
+				.delete(subDomain)
+				.where(eq(subDomain.id, id))
+				.returning();
+			if (deletedSubDomain.length === 0) {
+				return null;
+			}
+			return deletedSubDomain[0];
+		} catch (error) {
+			console.log(error);
 			return null;
 		}
-		return deletedSubDomain[0];
+	}
+
+	async getSubDomainFromId(id: string): Promise<SelectSubDomain | null> {
+		try {
+			const find = await db.query.subDomain.findFirst({
+				where: (subdoman, { eq }) => eq(subdoman.id, id),
+			});
+			if (!find) {
+				return null;
+			} else {
+				return find;
+			}
+		} catch (error) {
+			console.log(error);
+			return null;
+		}
 	}
 }
 

@@ -10,8 +10,9 @@ export async function GET(
 	{ params }: { params: { id: string } }
 ) {
 	try {
-		const recordId = (await params)?.id;
-		if (!recordId) {
+		console.log("hello 1");
+		const subDomainId = (await params)?.id;
+		if (!subDomainId) {
 			return Response.json(
 				new ApiResponse(400, "Record ID not found", false),
 				{
@@ -20,21 +21,34 @@ export async function GET(
 				}
 			);
 		}
+		console.log("hello 2");
+		const subDomain =
+			await subDomainRepository.getSubDomainFromId(subDomainId);
+		console.log("hello 3", subDomain);
 
-		const record = await cloudflareService.findCFRecord(recordId);
-		if (!record) {
+		if (!subDomain) {
 			return Response.json(
-				new ApiResponse(404, "Record Not Found", false),
+				new ApiResponse(404, "SubDomain Not Found", false),
 				{
 					status: 404,
 					statusText: "Not Found",
 				}
 			);
 		}
-		return Response.json(new ApiResponse(200, "success", record), {
-			status: 200,
-			statusText: "success",
-		});
+		const records =
+			await recordRepo.getAllRecordsFromSubDomainId(subDomainId);
+		console.log("hello 4", records);
+
+		return Response.json(
+			new ApiResponse(200, "OK", {
+				subDomain,
+				records,
+			}),
+			{
+				status: 200,
+				statusText: "OK",
+			}
+		);
 	} catch (error) {
 		return handleError(error);
 	}
@@ -61,10 +75,10 @@ export async function DELETE(
 				}
 			);
 		}
-
+		console.log(1);
 		const recordsToDelete =
 			await recordRepo.getAllRecordsIdFromSubDomainId(recordId);
-
+		console.log("2");
 		for (const record of recordsToDelete) {
 			try {
 				await cloudflareService.deleteCFRecord(record.id);
@@ -78,10 +92,10 @@ export async function DELETE(
 				// For now, we'll log and continue, but this might leave orphaned CF records
 			}
 		}
-
+		console.log(3);
 		const deletedSubDomain =
 			await subDomainRepository.deleteSubDomainDb(recordId);
-
+		console.log(4);
 		if (!deletedSubDomain) {
 			return Response.json(
 				new ApiResponse(404, "Sub Domain not found in DB", false),

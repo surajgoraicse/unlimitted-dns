@@ -21,6 +21,7 @@ export const record = pgTable("record", {
 		})
 		.notNull(),
 	providerRecordId: text("provider_record_id").notNull().unique(),
+	name : text('name').notNull().unique(),
 	type: recordTypeEnum("type").notNull(),
 	content: text("content").notNull(),
 	ttl: integer("ttl").default(300).notNull(),

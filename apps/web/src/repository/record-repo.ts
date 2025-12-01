@@ -14,7 +14,7 @@ type UpdateRecord = Pick<
 >;
 
 interface IRecordRepository {
-	getAllRecordsFromSubDomainId(id: string): Promise<SelectRecord[]>;
+	getAllRecordsFromSubDomainId(id: string): Promise<SelectRecord[] | null>;
 	getAllRecordsIdFromSubDomainId(id: string): Promise<{ id: string }[]>;
 	createRecordDb(record: InsertRecord): Promise<SelectRecord | undefined>;
 	updateRecordDb(record: UpdateRecord, id: string): Promise<SelectRecord>;
@@ -71,9 +71,15 @@ class RecordRepo implements IRecordRepository {
 		return deletedRecords[0];
 	}
 	async getAllRecordsFromSubDomainId(id: string) {
-		return await db.query.record.findMany({
-			where: (records, { eq }) => eq(records.subDomainId, id),
-		});
+		try {
+			console.log("here");
+			return await db.query.record.findMany({
+				where: (records, { eq }) => eq(records.subDomainId, id),
+			});
+		} catch (error) {
+			console.log(error);
+			return null;
+		}
 	}
 	async getAllRecordsIdFromSubDomainId(
 		id: string
@@ -104,6 +110,9 @@ class RecordRepo implements IRecordRepository {
 		// allows multiple txt record.
 
 		const records = await this.getAllRecordsFromSubDomainId(subDomainId);
+		if (!records) {
+			return { success: true, message: "" };
+		}
 		const exist = records.some(
 			(record) =>
 				(record.type === type && record.type !== "TXT") ||

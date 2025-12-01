@@ -29,9 +29,15 @@ class CloudflareService implements ICloudflareService {
 		this.zone_id = zone_id;
 	}
 	async findCFRecord(recordId: string) {
-		return await client.dns.records.get(recordId, {
-			zone_id: this.zone_id,
-		});
+		console.log("cccccc ", recordId);
+		try {
+			return await client.dns.records.get(recordId, {
+				zone_id: this.zone_id,
+			});
+		} catch (error) {
+			console.log(error);
+			throw error;
+		}
 	}
 
 	async createCFRecord(record: CFRecord) {

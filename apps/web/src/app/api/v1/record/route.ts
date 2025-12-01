@@ -52,11 +52,14 @@ export async function POST(req: NextRequest) {
 		if (!parseResult.success) {
 			return handleError(parseResult.error);
 		}
+		console.log(1);
 
 		const { subDomainId, type, ttl, proxied, content, comment } =
 			parseResult.data;
 
 		const find = await getSubDomainFromId(subDomainId);
+		console.log(2);
+
 
 		if (!find) {
 			return Response.json(
@@ -71,6 +74,8 @@ export async function POST(req: NextRequest) {
 			type,
 			subDomainId
 		);
+		console.log(3, isTypeValid);
+
 		if (!isTypeValid.success) {
 			return (
 				Response.json(
@@ -85,6 +90,8 @@ export async function POST(req: NextRequest) {
 				}
 			);
 		}
+		console.log(4);
+
 
 		const isValidContent = recordRepo.validateRecordContext(content, type);
 		if (!isValidContent.success) {
@@ -101,6 +108,8 @@ export async function POST(req: NextRequest) {
 				}
 			);
 		}
+		console.log(5);
+
 
 		const record = await cloudflareService.createCFRecord({
 			name: find.name,
@@ -119,6 +128,8 @@ export async function POST(req: NextRequest) {
 				}
 			);
 		}
+		console.log(6);
+
 		const dbRecord = await recordRepo.createRecordDb({
 			subDomainId,
 			providerRecordId: record.id,
@@ -145,6 +156,8 @@ export async function POST(req: NextRequest) {
 			);
 		}
 		// success
+		console.log(7);
+
 
 		console.log(
 			"................record created in CF....................."
