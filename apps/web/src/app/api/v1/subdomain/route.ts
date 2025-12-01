@@ -2,12 +2,10 @@ import handleError, { ApiError } from "@/lib/api-error";
 import ApiResponse from "@/lib/api-response";
 import { getUserSession } from "@/lib/auth";
 import {
-	checkSubDomainExist,
-	getSubNameFromName,
-	insertSubDomain,
-	nameValidator,
+	checkSubDomainProjectNameExist,
+	subDomainRepo,
 } from "@/repository/subdomain-repo";
-import { createSubDomainReqBody } from "@/types/zod-schema";
+import { createSubDomainReqBody, ProjectNameSchema } from "@/types/zod-schema";
 import { NextRequest } from "next/server";
 
 export async function POST(req: NextRequest) {
@@ -31,19 +29,22 @@ export async function POST(req: NextRequest) {
 		if (!parsedBody.success) {
 			return handleError(parsedBody.error);
 		}
-		const { name } = parsedBody.data;
-		const isValid = nameValidator.validate(name);
-		if (!isValid) {
-			return Response.json(new ApiError(400, "Invalid Domain Name"), {
-				status: 400,
-				statusText: "Bad Request",
-			});
+		const { projectName } = parsedBody.data;
+
+		const isValid = ProjectNameSchema.safeParse(projectName);
+		if (!isValid.success) {
+			return Response.json(
+				new ApiError(400, "Invalid Project Name", isValid.error),
+				{
+					status: 400,
+					statusText: "Bad Request",
+				}
+			);
 		}
-		console.log(`name : ${name}`);
-		const exist = await checkSubDomainExist(name);
+		const exist = await checkSubDomainProjectNameExist(projectName);
 		if (exist) {
 			return Response.json(
-				new ApiError(400, "sub domain already exists"),
+				new ApiError(400, "Project Name already exists"),
 				{
 					status: 400,
 					statusText: "Bad Request",
@@ -51,16 +52,21 @@ export async function POST(req: NextRequest) {
 			);
 		}
 
-		const subName = getSubNameFromName(name);
-		console.log(`subName  :${subName}`);
-
-		const create = await insertSubDomain({ name, ownerId, subName });
-		console.log(`create subdomain : ${create}`);
+		const create = await subDomainRepo.createSubDomainDb({
+			ownerId,
+			projectName,
+		});
 		if (!create) {
-			return Response.json(new ApiResponse(500, "Something went wrong"), {
-				status: 500,
-				statusText: "Something went wrong",
-			});
+			return Response.json(
+				new ApiError(
+					500,
+					"Something went wrong, Sub domain creation failed in DB"
+				),
+				{
+					status: 500,
+					statusText: "Something went wrong",
+				}
+			);
 		}
 
 		return Response.json(
@@ -73,6 +79,4 @@ export async function POST(req: NextRequest) {
 	} catch (error) {
 		return handleError(error);
 	}
-
-	
 }

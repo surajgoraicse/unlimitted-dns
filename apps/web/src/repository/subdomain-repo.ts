@@ -1,10 +1,19 @@
 // src/repository/subdomain.ts (or similar)
 import { db } from "@/db/db";
 import { InsertSubDomain, SelectSubDomain, subDomain } from "@/db/schema";
+import { DB } from "@/types/types";
+import { CreateSubDomain } from "@/types/zod-schema";
 import { eq } from "drizzle-orm";
 
+type ErrorType = {
+	message: string;
+	error: any;
+};
+
 interface ISubDomainRepository {
-	createSubdomain(): Promise<SelectSubDomain | null>;
+	createSubDomainDb(
+		subDomainValue: CreateSubDomain
+	): Promise<SelectSubDomain | null>;
 	checkSubDomainExistFromName(name: string): Promise<boolean>;
 	checkSubDomainExistFromSubName(subName: string): Promise<boolean>;
 	deleteSubDomainDb(id: string): Promise<SelectSubDomain | null>;
@@ -12,8 +21,24 @@ interface ISubDomainRepository {
 }
 
 class SubDomainRepository implements ISubDomainRepository {
-	async createSubdomain(): Promise<SelectSubDomain | null> {
-		throw new Error("Method not implemented.");
+	db: DB;
+	constructor(db: DB) {
+		this.db = db;
+	}
+	async createSubDomainDb(subDomainValue: CreateSubDomain) {
+		// const session = await getUserSession();
+		// if (!session) {
+		// 	return { message: "Session Not Found", error: undefined };
+		// }
+		// const ownerId = session.user.id
+		// if (!ownerId) {
+		// 	return { message: "Owner Id Not Found", error: undefined };
+		// }
+		const create = await this.db
+			.insert(subDomain)
+			.values(subDomainValue)
+			.returning();
+		return create[0];
 	}
 	async checkSubDomainExistFromName(name: string): Promise<boolean> {
 		throw new Error("Method not implemented.");
@@ -54,7 +79,7 @@ class SubDomainRepository implements ISubDomainRepository {
 	}
 }
 
-export const subDomainRepository = new SubDomainRepository();
+export const subDomainRepo = new SubDomainRepository(db);
 
 export async function insertSubDomain(data: InsertSubDomain) {
 	const { name, ownerId } = data;
@@ -70,9 +95,9 @@ export async function insertSubDomain(data: InsertSubDomain) {
 	return insertedRows[0];
 }
 
-export async function checkSubDomainExist(name: string) {
+export async function checkSubDomainProjectNameExist(projectName: string) {
 	const find = await db.query.subDomain.findFirst({
-		where: (subdoman, { eq }) => eq(subdoman.name, name),
+		where: (subdoman, { eq }) => eq(subdoman.projectName, projectName),
 	});
 	return !!find;
 }
