@@ -2,6 +2,7 @@ import handleError, { ApiError } from "@/lib/api-error";
 import ApiResponse from "@/lib/api-response";
 import { verificationRepo } from "@/repository/verification-repo";
 import cloudflareService from "@/service/cloudflare-service";
+import { qstashPublishDeleteVerificationRecord } from "@/service/qstash";
 import { DrizzleQueryError } from "drizzle-orm";
 import { NextRequest } from "next/server";
 import { z } from "zod";
@@ -70,8 +71,10 @@ export async function POST(req: NextRequest) {
 			status: "VERIFIED",
 		});
 		console.log("create db", createRecordDB);
-		if (!createRecordDB) {
-		}
+
+		// publish a qstash delete 
+		await qstashPublishDeleteVerificationRecord(createRecordDB.id, 300);
+
 		return Response.json(new ApiResponse(200, "Success", createRecordDB), {
 			status: 200,
 			statusText: "OK",
