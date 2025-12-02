@@ -14,7 +14,6 @@ import { NextRequest } from "next/server";
 // 			zone_id: process.env.ZONE_ID!,
 // 		})) {
 // 			recordList.push(recordResponse);
-// 			console.log(recordResponse);
 // 		}
 
 // 		return Response.json(new ApiResponse(200, "success", recordList));
@@ -90,13 +89,11 @@ export async function POST(req: NextRequest) {
 		if (!parseResult.success) {
 			return handleError(parseResult.error);
 		}
-		console.log(1);
 
 		const { subDomainId, type, ttl, proxied, content, comment, name } =
 			parseResult.data;
-		
+
 		const find = await getSubDomainFromId(subDomainId);
-		console.log(2);
 
 		if (!find) {
 			return Response.json(
@@ -107,20 +104,16 @@ export async function POST(req: NextRequest) {
 				}
 			);
 		}
-		console.log(`type ${type}`);
 		const isTypeValid = await recordRepo.validateRecordType(
 			type,
 			subDomainId
 		);
-		console.log(3, isTypeValid);
 
 		if (!isTypeValid.success) {
-			return (
-				Response.json(
-					new ApiError(
-						400,
-						isTypeValid.message || "Type Validation Failed"
-					)
+			return Response.json(
+				new ApiError(
+					400,
+					isTypeValid.message || "Type Validation Failed"
 				),
 				{
 					status: 400,
@@ -128,16 +121,13 @@ export async function POST(req: NextRequest) {
 				}
 			);
 		}
-		console.log(4);
 
 		const isValidContent = recordRepo.validateRecordContext(content, type);
 		if (!isValidContent.success) {
-			return (
-				Response.json(
-					new ApiError(
-						400,
-						isValidContent.message || "Content Validation Failed"
-					)
+			return Response.json(
+				new ApiError(
+					400,
+					isValidContent.message || "Content Validation Failed"
 				),
 				{
 					status: 400,
@@ -145,19 +135,14 @@ export async function POST(req: NextRequest) {
 				}
 			);
 		}
-		console.log(5);
 		const fqdn = `${name}.${process.env.DOMAIN}`;
 
 		const isNameValid = await recordRepo.validateRecordName(name);
-		console.log(`isNameValid ${JSON.stringify(isNameValid)}`);
 		if (!isNameValid.success) {
-			return (
-				Response.json(
-					new ApiError(
-						400,
-						isNameValid.message ||
-							`Name Validation Failed : ${fqdn} `
-					)
+			return Response.json(
+				new ApiError(
+					400,
+					isNameValid.message || `Name Validation Failed : ${fqdn} `
 				),
 				{
 					status: 400,
@@ -183,7 +168,6 @@ export async function POST(req: NextRequest) {
 				}
 			);
 		}
-		console.log(6, record);
 
 		const dbRecord = await recordRepo.createRecordDb({
 			subDomainId,
@@ -211,17 +195,6 @@ export async function POST(req: NextRequest) {
 				}
 			);
 		}
-		// success
-		console.log(7);
-
-		console.log(
-			"................record created in CF....................."
-		);
-		console.log("cf record : ", record);
-		console.log("db record : ", dbRecord);
-		console.log(
-			"................record created in CF....................."
-		);
 
 		return Response.json(new ApiResponse(201, "record created", record));
 	} catch (error) {

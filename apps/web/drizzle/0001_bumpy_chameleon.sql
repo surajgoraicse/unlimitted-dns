@@ -1,0 +1,1 @@
+ALTER TABLE "verification_record" ALTER COLUMN "sub_domain_id" SET NOT NULL;

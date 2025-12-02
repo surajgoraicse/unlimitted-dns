@@ -20,6 +20,14 @@ class VerificationRepository implements IVerification {
 	constructor(db: DB) {
 		this.db = db;
 	}
+	async getVerificationRecord(
+		id: string
+	): Promise<InsertVerificationRecord | undefined> {
+		return await this.db.query.verificationRecord
+			.findFirst()
+			.where(eq(verificationRecord.id, id));
+	}
+
 	async deleteVerificationRecord(
 		id: string
 	): Promise<InsertVerificationRecord | undefined> {
@@ -29,14 +37,14 @@ class VerificationRepository implements IVerification {
 			.returning();
 		return record[0];
 	}
-	async getVerificationRecord(
-		id: string
-	): Promise<InsertVerificationRecord | undefined> {
-		const record = await this.db.query.verificationRecord.findFirst({
-			where: (table, { eq }) => eq(table.id, id),
-		});
-		return record;
-	}
+	// async getVerificationRecord(
+	// 	id: string
+	// ): Promise<InsertVerificationRecord | undefined> {
+	// 	return await this.db.query.verificationRecord.findFirst({
+	// 		where: (table: typeof verificationRecord, { eq }) =>
+	// 			eq(table.id, id),
+	// 	});
+	// }
 	async createVerificationRecord(data: InsertVerificationRecord) {
 		const create = await db
 			.insert(verificationRecord)

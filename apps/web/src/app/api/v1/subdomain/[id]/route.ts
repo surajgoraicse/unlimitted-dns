@@ -8,11 +8,11 @@ import { recordRepo } from "@/repository/record-repo";
 import { subDomainRepo } from "@/repository/subdomain-repo";
 import cloudflareService from "@/service/cloudflare-service";
 import { createSubDomainReqBody, ProjectNameSchema } from "@/types/zod-schema";
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 
 export async function GET(
 	req: NextRequest,
-	{ params }: { params: { id: string } }
+	{ params }: { params: Promise<{ id: string }> }
 ) {
 	try {
 		console.log("hello 1");
@@ -26,7 +26,7 @@ export async function GET(
 				}
 			);
 		}
-		const ownerId= await checkOwnershipFromSubDomainId(subDomainId);
+		const ownerId = await checkOwnershipFromSubDomainId(subDomainId);
 		if (!ownerId) {
 			return Response.json(new ApiResponse(401, "Unauthorized", false), {
 				status: 401,
@@ -71,7 +71,7 @@ export async function GET(
 
 export async function DELETE(
 	req: NextRequest,
-	{ params }: { params: { id: string } }
+	{ params }: { params: Promise<{ id: string }> }
 ) {
 	// get all the records id assocaited with the subdomain using the subDomainId field in the reocrd table.
 	// delete all of them one by one from the cloudflare using the cloudflare api
@@ -147,8 +147,8 @@ export async function DELETE(
 }
 
 export async function PUT(
-	req: NextResponse,
-	{ params }: { params: { id: string } }
+	req: NextRequest,
+	{ params }: { params: Promise<{ id: string }> }
 ) {
 	const ownerId = await getUserIdFromSession();
 	if (!ownerId) {

@@ -71,6 +71,7 @@ export async function POST(req: NextRequest) {
 			status: "VERIFIED",
 		});
 		console.log("create db", createRecordDB);
+		
 
 		// publish a qstash delete 
 		await qstashPublishDeleteVerificationRecord(createRecordDB.id, 300);

@@ -6,7 +6,7 @@ import { NextRequest } from "next/server";
 
 export async function DELETE(
 	req: NextRequest,
-	{ params }: { params: { id: string } }
+	{ params }: { params: Promise<{ id: string }> }
 ) {
 	try {
 		const recordId = (await params).id;

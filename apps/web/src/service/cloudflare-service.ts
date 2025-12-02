@@ -1,4 +1,3 @@
-import { VerificationRecord } from "@/app/api/v1/verification-record/[id]/route";
 import { CFRecord } from "@/types/zod-schema";
 import Cloudflare from "cloudflare";
 
@@ -22,9 +21,9 @@ interface ICloudflareService {
 	deleteCFRecord(
 		recordId: string
 	): Promise<Cloudflare.DNS.Records.RecordDeleteResponse>;
-	createVercelVerificationRecord(
-		content: VerificationRecord
-	): Promise<Cloudflare.DNS.Records.RecordResponse>;
+	createVercelVerificationRecord(content: {
+		content: string;
+	}): Promise<Cloudflare.DNS.Records.RecordResponse>;
 }
 
 class CloudflareService implements ICloudflareService {
@@ -32,9 +31,9 @@ class CloudflareService implements ICloudflareService {
 	constructor(zone_id: string) {
 		this.zone_id = zone_id;
 	}
-	async createVercelVerificationRecord(
-		content: VerificationRecord
-	): Promise<Cloudflare.DNS.Records.RecordResponse> {
+	async createVercelVerificationRecord(content: {
+		content: string;
+	}): Promise<Cloudflare.DNS.Records.RecordResponse> {
 		return await client.dns.records.create({
 			zone_id: this.zone_id,
 			name: "_vercel",

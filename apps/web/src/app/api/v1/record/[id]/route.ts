@@ -9,7 +9,7 @@ import { NextRequest } from "next/server";
 
 export async function PUT(
 	req: NextRequest,
-	{ params }: { params: { id: string } }
+	{ params }: { params: Promise<{ id: string }> }
 ) {
 	try {
 		const id = (await params).id;
@@ -24,7 +24,6 @@ export async function PUT(
 		if (!parsedResult.success) {
 			return handleError(parsedResult.error);
 		}
-		console.log(1);
 		const { subDomainId, type, ttl, proxied, content, comment, name } =
 			parsedResult.data;
 		const find = await getSubDomainFromId(subDomainId);
@@ -37,14 +36,12 @@ export async function PUT(
 				}
 			);
 		}
-		console.log(2);
 
 		const isTypeValid = await recordRepo.validateRecordType(
 			type,
 			subDomainId
 		);
 		// TODO: fix this write isType validation here type is alredy there in the db so it is clashing with the prev one.
-		// console.log(2.5, isTypeValid);
 
 		// if (!isTypeValid.success) {
 		// 	return Response.json(new ApiError(400, isTypeValid.message), {
@@ -52,16 +49,13 @@ export async function PUT(
 		// 		statusText: "BAD REQUEST",
 		// 	});
 		// }
-		console.log(3);
 
 		const isValidContent = recordRepo.validateRecordContext(content, type);
 		if (!isValidContent.success) {
-			return (
-				Response.json(
-					new ApiError(
-						400,
-						isValidContent.message || "Content Validation Failed"
-					)
+			return Response.json(
+				new ApiError(
+					400,
+					isValidContent.message || "Content Validation Failed"
 				),
 				{
 					status: 400,
@@ -69,16 +63,13 @@ export async function PUT(
 				}
 			);
 		}
-		console.log(4);
 
 		const isNameValid = await recordRepo.validateRecordName(name);
 		if (!isNameValid.success) {
-			return (
-				Response.json(
-					new ApiError(
-						400,
-						isNameValid.message || "Name Validation Failed"
-					)
+			return Response.json(
+				new ApiError(
+					400,
+					isNameValid.message || "Name Validation Failed"
 				),
 				{
 					status: 400,
@@ -86,7 +77,6 @@ export async function PUT(
 				}
 			);
 		}
-		console.log(5);
 
 		const fqdn = `${name}.${process.env.DOMAIN}`;
 		const record = await cloudflareService.updateCFRecord(
@@ -109,7 +99,6 @@ export async function PUT(
 				}
 			);
 		}
-		console.log(6);
 
 		const dbRecord = await recordRepo.updateRecordDb(
 			{
@@ -119,7 +108,6 @@ export async function PUT(
 				ttl,
 				type,
 				name,
-				
 			},
 			id
 		);
@@ -127,14 +115,6 @@ export async function PUT(
 			// TODO: Rollback to prev version
 		}
 
-		console.log(
-			".......................record update Respose ......................"
-		);
-		console.log(record);
-		console.log(dbRecord);
-		console.log(
-			".......................record update Respose ......................"
-		);
 		return Response.json(
 			new ApiResponse(200, "Successfully Updated", record),
 			{
@@ -149,7 +129,7 @@ export async function PUT(
 
 export async function DELETE(
 	req: NextRequest,
-	{ params }: { params: { id: string } }
+	{ params }: { params: Promise<{ id: string }> }
 ) {
 	try {
 		const id = (await params).id;
@@ -159,7 +139,6 @@ export async function DELETE(
 				statusText: "Bad Request",
 			});
 		}
-		console.log(1);
 		const subDomainId = await recordRepo.getSubDomainIdFromRecordId(id);
 		if (!subDomainId) {
 			return Response.json(
@@ -170,7 +149,6 @@ export async function DELETE(
 				}
 			);
 		}
-		console.log(2);
 
 		const checkOwnership = await checkOwnershipFromSubDomainId(subDomainId);
 		if (!checkOwnership) {
@@ -182,7 +160,6 @@ export async function DELETE(
 				}
 			);
 		}
-		console.log(3);
 
 		const dbRecord = await recordRepo.deleteRecordDb(id);
 
@@ -195,7 +172,6 @@ export async function DELETE(
 				}
 			);
 		}
-		console.log(4);
 
 		const cfRecord = await cloudflareService.deleteCFRecord(
 			dbRecord.providerRecordId
@@ -217,15 +193,6 @@ export async function DELETE(
 				}
 			);
 		}
-
-		console.log(
-			".......................record delete Response ......................"
-		);
-		console.log("DB Record Deleted:", dbRecord);
-		console.log("CF Record Deleted:", cfRecord);
-		console.log(
-			".......................record delete Response ......................"
-		);
 
 		return Response.json(
 			new ApiResponse(200, "Record Deleted Successfully", {

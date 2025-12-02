@@ -8,6 +8,13 @@
       "when": 1764586901291,
       "tag": "0000_clean_sunfire",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1764662454751,
+      "tag": "0001_bumpy_chameleon",
+      "breakpoints": true
     }
   ]
 }
