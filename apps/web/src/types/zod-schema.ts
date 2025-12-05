@@ -27,6 +27,7 @@ export type CFRecord = Pick<
 
 export const createSubDomainReqBody = z.object({
 	projectName: z.string().trim(),
+	comment: z.string().trim(),
 });
 export type CreateSubdomainReqBody = z.infer<typeof createSubDomainReqBody>;
 

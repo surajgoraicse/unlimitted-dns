@@ -185,10 +185,7 @@ export async function POST(req: NextRequest) {
 			// rollback cf record
 			await cloudflareService.deleteCFRecord(record.id);
 			return Response.json(
-				new ApiError(
-					500,
-					"Failed to save record in DB, rolled back Cloudflare record"
-				),
+				new ApiError(500, "Failed to save record in DB"),
 				{
 					status: 500,
 					statusText: "Internal Server Error",

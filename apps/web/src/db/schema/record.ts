@@ -1,7 +1,6 @@
 import {
 	boolean,
 	integer,
-	json,
 	pgTable,
 	smallint,
 	text,

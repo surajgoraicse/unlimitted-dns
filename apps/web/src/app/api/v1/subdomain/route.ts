@@ -1,6 +1,6 @@
 import handleError, { ApiError } from "@/lib/api-error";
 import ApiResponse from "@/lib/api-response";
-import { getUserSession } from "@/lib/auth";
+import { getUserIdFromSession, getUserSession } from "@/lib/auth";
 import {
 	checkSubDomainProjectNameExist,
 	subDomainRepo,
@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
 		if (!parsedBody.success) {
 			return handleError(parsedBody.error);
 		}
-		const { projectName } = parsedBody.data;
+		const { projectName , comment} = parsedBody.data;
 
 		const isValid = ProjectNameSchema.safeParse(projectName);
 		if (!isValid.success) {
@@ -55,6 +55,7 @@ export async function POST(req: NextRequest) {
 		const create = await subDomainRepo.createSubDomainDb({
 			ownerId,
 			projectName,
+			comment
 		});
 		if (!create) {
 			return Response.json(
@@ -76,6 +77,29 @@ export async function POST(req: NextRequest) {
 				statusText: "Sub Domain Created",
 			}
 		);
+	} catch (error) {
+		return handleError(error);
+	}
+}
+
+export async function GET(req: NextRequest) {
+	try {
+		const userId = await getUserIdFromSession();
+		if (!userId) {
+			return Response.json(
+				new ApiError(401, "Unauthorized Login first"),
+				{
+					status: 401,
+					statusText: "Unauthorized",
+				}
+			);
+		}
+		const subDomains =
+			await subDomainRepo.getAllSubDomainFromOwnerId(userId);
+		return Response.json(new ApiResponse(200, "success", subDomains), {
+			status: 200,
+			statusText: "OK",
+		});
 	} catch (error) {
 		return handleError(error);
 	}

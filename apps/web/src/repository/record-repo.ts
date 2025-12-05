@@ -79,19 +79,15 @@ class RecordRepo implements IRecordRepository {
 		return updatedRecord[0];
 	}
 	async deleteRecordDb(id: string): Promise<SelectRecord | null> {
-		// 1. Use a more descriptive plural variable name (optional, but good practice)
 		const deletedRecords = await this.db
 			.delete(record)
 			.where(eq(record.id, id))
 			.returning();
 
-		// 2. Explicitly check if the record was found and deleted
 		if (deletedRecords.length === 0) {
-			// Return null instead of undefined if no record matched the ID
 			return null;
 		}
 
-		// 3. Return the deleted record
 		return deletedRecords[0];
 	}
 	async getAllRecordsFromSubDomainId(id: string) {
@@ -107,11 +103,12 @@ class RecordRepo implements IRecordRepository {
 	}
 	async getAllRecordsIdFromSubDomainId(
 		id: string
-	): Promise<{ id: string }[]> {
+	): Promise<{ id: string; providerRecordId: string }[]> {
 		return await db.query.record.findMany({
 			where: (records, { eq }) => eq(records.subDomainId, id),
 			columns: {
 				id: true,
+				providerRecordId: true,
 			},
 		});
 	}

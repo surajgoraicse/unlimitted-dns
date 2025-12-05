@@ -8,7 +8,7 @@ import {
 } from "@/db/schema";
 import { DB } from "@/types/types";
 import { CreateSubDomain } from "@/types/zod-schema";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 
 type ErrorType = {
 	message: string;
@@ -38,12 +38,20 @@ interface ISubDomainRepository {
 		ownerId: string
 	): Promise<SelectSubDomain | null>;
 	getSubDomainFromIdUnsafe(id: string): Promise<SelectSubDomain | undefined>;
+	getAllSubDomainFromOwnerId(ownerId: string): Promise<SelectSubDomain[]>;
 }
 
 class SubDomainRepository implements ISubDomainRepository {
 	db: DB;
 	constructor(db: DB) {
 		this.db = db;
+	}
+	async getAllSubDomainFromOwnerId(
+		ownerId: string
+	): Promise<SelectSubDomain[]> {
+		return await this.db.query.subDomain.findMany({
+			where: eq(subDomain.ownerId, ownerId),
+		});
 	}
 	async getSubDomainFromIdUnsafe(
 		id: string
@@ -106,19 +114,19 @@ class SubDomainRepository implements ISubDomainRepository {
 		id: string,
 		ownerId: string
 	): Promise<SelectSubDomain | null> {
-		try {
-			const deletedSubDomain = await db
-				.delete(subDomain)
-				.where(eq(subDomain.id, id) && eq(subDomain.ownerId, ownerId))
-				.returning();
-			if (deletedSubDomain.length === 0) {
-				return null;
-			}
-			return deletedSubDomain[0];
-		} catch (error) {
-			console.log(error);
+		const deletedSubDomain = await db
+			.delete(subDomain)
+			.where(
+				and(
+					eq(subDomain.id, id),
+					eq(subDomain.ownerId, ownerId)
+				)
+			)
+			.returning();
+		if (deletedSubDomain.length === 0) {
 			return null;
 		}
+		return deletedSubDomain[0];
 	}
 
 	async getSubDomainFromId(

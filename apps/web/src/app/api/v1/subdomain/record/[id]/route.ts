@@ -14,7 +14,7 @@ export async function GET(
 		const subDomainId = (await params)?.id;
 		if (!subDomainId) {
 			return Response.json(
-				new ApiResponse(400, "Sub Domain ID not found", false),
+				new ApiResponse(400, "Sub Domain ID Not Found", false),
 				{
 					status: 400,
 					statusText: "Bad Request",

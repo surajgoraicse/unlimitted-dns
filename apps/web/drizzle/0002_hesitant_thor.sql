@@ -1,0 +1,1 @@
+ALTER TABLE "sub_domain" ADD COLUMN "comment" text;

@@ -15,7 +15,6 @@ export async function GET(
 	{ params }: { params: Promise<{ id: string }> }
 ) {
 	try {
-		console.log("hello 1");
 		const subDomainId = (await params)?.id;
 		if (!subDomainId) {
 			return Response.json(
@@ -34,12 +33,10 @@ export async function GET(
 			});
 		}
 
-		console.log("hello 2");
 		const subDomain = await subDomainRepo.getSubDomainFromId(
 			subDomainId,
 			ownerId
 		);
-		console.log("hello 3", subDomain);
 
 		if (!subDomain) {
 			return Response.json(
@@ -52,7 +49,6 @@ export async function GET(
 		}
 		const records =
 			await recordRepo.getAllRecordsFromSubDomainId(subDomainId);
-		console.log("hello 4", records);
 
 		return Response.json(
 			new ApiResponse(200, "OK", {
@@ -103,13 +99,27 @@ export async function DELETE(
 		console.log("2");
 		for (const record of recordsToDelete) {
 			try {
-				await cloudflareService.deleteCFRecord(record.id);
-				console.log(`Deleted Cloudflare record with ID: ${record.id}`);
+				await cloudflareService.deleteCFRecord(record.providerRecordId);
+				console.log(
+					`Deleted Cloudflare record with ID: ${record.providerRecordId}`
+				);
 			} catch (cfError) {
 				console.error(
 					`Failed to delete Cloudflare record ${record.id}:`,
 					cfError
 				);
+
+				return Response.json(
+					new ApiError(
+						500,
+						`Failed to delete Cloudflare record for ID: ${record.id}`
+					),
+					{
+						status: 500,
+						statusText: "Internal Server Error",
+					}
+				);
+
 				// Depending on requirements, you might want to stop here or continue
 				// For now, we'll log and continue, but this might leave orphaned CF records
 			}

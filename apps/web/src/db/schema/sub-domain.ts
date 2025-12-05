@@ -14,6 +14,7 @@ export const subDomain = pgTable(
 			.references(() => user.id, {
 				onDelete: "cascade",
 			}),
+		comment: text("comment"),
 		projectName: text("project_name").notNull(),
 		status: status("status").default("PENDING"),
 		createdAt: timestamp("created_at").defaultNow().notNull(),
