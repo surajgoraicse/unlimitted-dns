@@ -33,12 +33,13 @@ export async function DELETE(
 			);
 		}
 		return Response.json(
-			new ApiResponse(200, "deleted Successfully ", deleteFromDb),
+			new ApiResponse(201, "deleted Successfully ", deleteFromDb),
 			{
-				status: 200,
+				status: 201,
 			}
 		);
 	} catch (error) {
+		console.log(error);
 		return handleError(error);
 	}
 }

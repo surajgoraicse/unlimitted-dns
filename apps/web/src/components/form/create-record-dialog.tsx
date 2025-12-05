@@ -37,7 +37,13 @@ const CreateRecordFormSchema = InsertRecordSchema.omit({
 });
 type CreateRecordForm = z.infer<typeof CreateRecordFormSchema>;
 
-export function CreateRecordDialog({ projectId }: { projectId: string }) {
+export function CreateRecordDialog({
+	projectId,
+	className,
+}: {
+	projectId: string;
+	className?: string;
+}) {
 	const [open, setOpen] = useState(false);
 	console.log(`project id  ${projectId}`);
 
@@ -82,193 +88,197 @@ export function CreateRecordDialog({ projectId }: { projectId: string }) {
 	}
 
 	return (
-		<Dialog open={open} onOpenChange={setOpen}>
-			<DialogTrigger asChild>
-				<Button variant="outline">Create Record</Button>
-			</DialogTrigger>
-			<DialogContent className="sm:max-w-[425px]">
-				<form
-					onSubmit={form.handleSubmit(
-						(data) => {
-							handleSubmit(data, setOpen);
-						},
-						(errors) => {
-							console.log(
-								`form error : ${JSON.stringify(errors)}`
-							);
-						}
-					)}
-				>
-					<DialogHeader>
-						<DialogTitle>Create Record</DialogTitle>
-						<DialogDescription>
-							Create a record for your subdomain.
-						</DialogDescription>
-					</DialogHeader>
-					<div className="grid gap-4">
-						<div className="grid gap-3">
-							<Controller
-								name="type"
-								control={form.control}
-								render={({ field }) => (
-									<Select
-										defaultValue={field.value}
-										onValueChange={field.onChange}
-										name="type"
-									>
-										<SelectTrigger className="">
-											<SelectValue placeholder="Type" />
-										</SelectTrigger>
-										<SelectContent>
-											<SelectGroup>
-												<SelectLabel>
-													Record Type
-												</SelectLabel>
-												<SelectItem value="CNAME">
-													CNAME
-												</SelectItem>
-												<SelectItem value="A">
-													A
-												</SelectItem>
-												<SelectItem value="AAAA">
-													AAAA
-												</SelectItem>
-												<SelectItem value="TXT">
-													TXT
-												</SelectItem>
-											</SelectGroup>
-										</SelectContent>
-									</Select>
-								)}
-							/>
-							{form.formState.errors.type && (
-								<p className="text-red-500">
-									{form.formState.errors.type.message}
-								</p>
-							)}
-						</div>
-
-						<div className="grid gap-3">
-							<Input
-								{...form.register("name")}
-								placeholder="Subdomain Name"
-							/>
-							{form.formState.errors.name && (
-								<p className="text-red-500">
-									{form.formState.errors.name.message}
-								</p>
-							)}
-						</div>
-						<div className="grid gap-3">
-							<Input
-								{...form.register("content")}
-								placeholder="Target"
-							/>
-							{form.formState.errors.content && (
-								<p className="text-red-500">
-									{form.formState.errors.content.message}
-								</p>
-							)}
-						</div>
-						<div className="flex gap-4 items-center">
+		<div className={` ${className}`}>
+			<Dialog open={open} onOpenChange={setOpen}>
+				<DialogTrigger asChild>
+					<Button variant="outline">Create Record</Button>
+				</DialogTrigger>
+				<DialogContent className="sm:max-w-[425px]">
+					<form
+						onSubmit={form.handleSubmit(
+							(data) => {
+								handleSubmit(data, setOpen);
+							},
+							(errors) => {
+								console.log(
+									`form error : ${JSON.stringify(errors)}`
+								);
+							}
+						)}
+					>
+						<DialogHeader>
+							<DialogTitle>Create Record</DialogTitle>
+							<DialogDescription>
+								Create a record for your subdomain.
+							</DialogDescription>
+						</DialogHeader>
+						<div className="grid gap-4">
 							<div className="grid gap-3">
 								<Controller
-									name="ttl"
+									name="type"
 									control={form.control}
 									render={({ field }) => (
 										<Select
-											value={String(field.value ?? 300)}
-											onValueChange={(val) =>
-												field.onChange(
-													val == null
-														? undefined
-														: Number(val)
-												)
-											}
-											name="ttl"
+											defaultValue={field.value}
+											onValueChange={field.onChange}
+											name="type"
 										>
 											<SelectTrigger className="">
-												<SelectValue placeholder="TTL" />
+												<SelectValue placeholder="Type" />
 											</SelectTrigger>
 											<SelectContent>
 												<SelectGroup>
 													<SelectLabel>
-														TTL
+														Record Type
 													</SelectLabel>
-
-													<SelectItem value="60">
-														1 min
+													<SelectItem value="CNAME">
+														CNAME
 													</SelectItem>
-													<SelectItem value="120">
-														2 min
+													<SelectItem value="A">
+														A
 													</SelectItem>
-													<SelectItem value="300">
-														5 min
+													<SelectItem value="AAAA">
+														AAAA
 													</SelectItem>
-													<SelectItem value="600">
-														10 min
-													</SelectItem>
-													<SelectItem value="900">
-														15 min
-													</SelectItem>
-													<SelectItem value="1800">
-														30 min
-													</SelectItem>
-													<SelectItem value="3600">
-														1 hr
+													<SelectItem value="TXT">
+														TXT
 													</SelectItem>
 												</SelectGroup>
 											</SelectContent>
 										</Select>
 									)}
 								/>
-								{form.formState.errors.ttl && (
+								{form.formState.errors.type && (
 									<p className="text-red-500">
-										{form.formState.errors.ttl.message}
+										{form.formState.errors.type.message}
 									</p>
 								)}
 							</div>
-							<div className="flex items-center gap-4">
-								<Label htmlFor="proxied">
-									Cloudflare Proxy
-								</Label>
-								<Controller
-									name="proxied"
-									control={form.control}
-									render={({ field }) => (
-										<Checkbox
-											checked={field.value}
-											onCheckedChange={field.onChange}
-											onBlur={field.onBlur}
-											className="scale-150"
-										/>
+
+							<div className="grid gap-3">
+								<Input
+									{...form.register("name")}
+									placeholder="Subdomain Name"
+								/>
+								{form.formState.errors.name && (
+									<p className="text-red-500">
+										{form.formState.errors.name.message}
+									</p>
+								)}
+							</div>
+							<div className="grid gap-3">
+								<Input
+									{...form.register("content")}
+									placeholder="Target Value"
+								/>
+								{form.formState.errors.content && (
+									<p className="text-red-500">
+										{form.formState.errors.content.message}
+									</p>
+								)}
+							</div>
+							<div className="flex gap-4 items-center">
+								<div className="grid gap-3">
+									<Controller
+										name="ttl"
+										control={form.control}
+										render={({ field }) => (
+											<Select
+												value={String(
+													field.value ?? 300
+												)}
+												onValueChange={(val) =>
+													field.onChange(
+														val == null
+															? undefined
+															: Number(val)
+													)
+												}
+												name="ttl"
+											>
+												<SelectTrigger className="">
+													<SelectValue placeholder="TTL" />
+												</SelectTrigger>
+												<SelectContent>
+													<SelectGroup>
+														<SelectLabel>
+															TTL
+														</SelectLabel>
+
+														<SelectItem value="60">
+															1 min
+														</SelectItem>
+														<SelectItem value="120">
+															2 min
+														</SelectItem>
+														<SelectItem value="300">
+															5 min
+														</SelectItem>
+														<SelectItem value="600">
+															10 min
+														</SelectItem>
+														<SelectItem value="900">
+															15 min
+														</SelectItem>
+														<SelectItem value="1800">
+															30 min
+														</SelectItem>
+														<SelectItem value="3600">
+															1 hr
+														</SelectItem>
+													</SelectGroup>
+												</SelectContent>
+											</Select>
+										)}
+									/>
+									{form.formState.errors.ttl && (
+										<p className="text-red-500">
+											{form.formState.errors.ttl.message}
+										</p>
 									)}
+								</div>
+								<div className="flex items-center gap-4">
+									<Label htmlFor="proxied">
+										Cloudflare Proxy
+									</Label>
+									<Controller
+										name="proxied"
+										control={form.control}
+										render={({ field }) => (
+											<Checkbox
+												checked={field.value}
+												onCheckedChange={field.onChange}
+												onBlur={field.onBlur}
+												className="scale-150"
+											/>
+										)}
+									/>
+								</div>
+							</div>
+
+							<div className="grid gap-3">
+								<Input
+									{...form.register("comment")}
+									placeholder="COMMENT"
 								/>
 							</div>
 						</div>
-
-						<div className="grid gap-3">
-							<Input
-								{...form.register("comment")}
-								placeholder="COMMENT"
-							/>
-						</div>
-					</div>
-					<DialogFooter className="mt-5">
-						<DialogClose asChild>
-							<Button variant="outline">Cancel</Button>
-						</DialogClose>
-						<Button
-							disabled={form.formState.isSubmitting}
-							type="submit"
-						>
-							{form.formState.isSubmitting
-								? "Submitting..."
-								: "Submit"}
-						</Button>
-					</DialogFooter>
-				</form>
-			</DialogContent>
-		</Dialog>
+						<DialogFooter className="mt-5">
+							<DialogClose asChild>
+								<Button variant="outline">Cancel</Button>
+							</DialogClose>
+							<Button
+								disabled={form.formState.isSubmitting}
+								type="submit"
+							>
+								{form.formState.isSubmitting
+									? "Submitting..."
+									: "Submit"}
+							</Button>
+						</DialogFooter>
+					</form>
+				</DialogContent>
+			</Dialog>
+		</div>
 	);
 }

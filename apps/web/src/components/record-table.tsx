@@ -15,7 +15,6 @@ import { Dispatch, SetStateAction } from "react";
 import { useForm } from "react-hook-form";
 import z from "zod";
 import ActionMenu from "./ActionMenu";
-import { CreateRecordDialog } from "./form/create-record-dialog";
 
 const CreateRecordFormSchema = InsertRecordSchema.omit({
 	id: true,
@@ -40,6 +39,7 @@ interface IRecordTable {
 	updateRecord: () => Promise<void>;
 	deleteRecord: (recordId: string) => Promise<void>;
 	refreshRecord: () => Promise<void>;
+	className?: string;
 }
 
 export function RecordTable({
@@ -48,6 +48,7 @@ export function RecordTable({
 	refreshRecord,
 	updateRecord,
 	deleteRecord,
+	className,
 }: IRecordTable) {
 	const form = useForm({
 		resolver: zodResolver(CreateRecordFormSchema),
@@ -58,11 +59,8 @@ export function RecordTable({
 	});
 
 	return (
-		<div className="mt-10">
-			<div className="text-right">
-				<CreateRecordDialog projectId={projectId} />
-			</div>
-			<Table className="mt-5 ">
+		<div className={`${className}`}>
+			<Table className="">
 				<TableCaption>A list of your Records.</TableCaption>
 				<TableHeader>
 					<TableRow>

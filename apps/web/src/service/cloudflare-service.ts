@@ -34,13 +34,18 @@ class CloudflareService implements ICloudflareService {
 	async createVercelVerificationRecord(content: {
 		content: string;
 	}): Promise<Cloudflare.DNS.Records.RecordResponse> {
-		return await client.dns.records.create({
-			zone_id: this.zone_id,
-			name: "_vercel",
-			ttl: 60,
-			type: "TXT",
-			content: content.content,
-		});
+		try {
+			return await client.dns.records.create({
+				zone_id: this.zone_id,
+				name: "_vercel",
+				ttl: 60,
+				type: "TXT",
+				content: content.content,
+			});
+		} catch (error) {
+			console.error("Cloudflare API Error:", error);
+			throw new Error("Failed to create DNS record via Cloudflare.");
+		}
 	}
 
 	async findCFRecord(recordId: string) {

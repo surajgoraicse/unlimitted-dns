@@ -1,6 +1,9 @@
 import { z } from "zod";
 import { RECORD_TYPES, STATUS } from "./constants";
 
+
+
+
 export const createRecordReqBody = z.object({
 	subDomainId: z.uuid(),
 	name: z.string().trim(),

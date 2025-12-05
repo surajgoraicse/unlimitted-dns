@@ -48,22 +48,18 @@ class RecordRepo implements IRecordRepository {
 	}
 
 	async getSubDomainIdFromRecordId(id: string): Promise<string | null> {
-		console.log(`id value ${id}`);
 		const result = await this.db.query.record.findFirst({
 			where: (records, { eq }) => eq(records.id, id),
 			columns: {
 				subDomainId: true,
 			},
 		});
-		console.log(`resutl value `, result);
 		return result?.subDomainId || null;
 	}
 	async updateRecordDb(
 		recordData: UpdateRecord,
 		id: string
 	): Promise<SelectRecord> {
-		console.log(recordData);
-		console.log(id);
 		const updatedRecord = await this.db
 			.update(record)
 			.set({
@@ -92,12 +88,10 @@ class RecordRepo implements IRecordRepository {
 	}
 	async getAllRecordsFromSubDomainId(id: string) {
 		try {
-			console.log("here");
 			return await db.query.record.findMany({
 				where: (records, { eq }) => eq(records.subDomainId, id),
 			});
 		} catch (error) {
-			console.log(error);
 			return null;
 		}
 	}
@@ -119,39 +113,10 @@ class RecordRepo implements IRecordRepository {
 			.insert(record)
 			.values(recordValues)
 			.returning();
-		console.log(".................create record in db...............");
-		console.log(create);
-		console.log(".................create record in db...............");
+
 		return create[0];
 	}
-	// async validateRecordType(type: RecordTypes, subDomainId: string) {
-	// 	// this function validates a new record type : return true if all good otherwise false
-	// 	// checks if a record already exists : if 'A' already exist then it wont allow to create an another one
-	// 	// checks if 'cname' already exists : if exist then it wont allow to create any other record on the name
-	// 	// allows multiple txt record.
 
-	// 	const records = await this.getAllRecordsFromSubDomainId(subDomainId);
-	// 	console.log(`records all ${records}`);
-	// 	// no existing records -> always allowed
-	// 	if (!records || records.length === 0) {
-	// 		return { success: true, message: undefined };
-	// 	}
-	// 	const exist = records.some(
-	// 		(record) =>
-	// 			!(
-	// 				(record.type === type && record.type !== "TXT") ||
-	// 				record.type === "CNAME"
-	// 			)
-	// 	);
-	// 	console.log("i am hereeee", exist);
-	// 	if (!exist) {
-	// 		return { success: false, message: "Type Validation Failed" };
-	// 	}
-	// 	return {
-	// 		success: true,
-	// 		message: undefined,
-	// 	};
-	// }
 	async validateRecordType(type: RecordTypes, subDomainId: string) {
 		// this function validates a new record type : return true if all good otherwise false
 		// 	// checks if a record already exists : if 'A' already exist then it wont allow to create an another one
@@ -193,44 +158,6 @@ class RecordRepo implements IRecordRepository {
 		return { success: true, message: undefined };
 	}
 
-	// async validateRecordName(
-	// 	name: string
-	// ): Promise<{ success: boolean; message: string | undefined }> {
-	// 	// 1. Basic format validation (must end with coderz.space)
-	// 	if (!name.endsWith(".coderz.space")) {
-	// 		return {
-	// 			success: false,
-	// 			message: "Invalid record name. Must end with .coderz.space",
-	// 		};
-	// 	}
-
-	// 	// 2. Ensure there's something before coderz.space
-	// 	const parts = name.replace(".coderz.space", "").split(".");
-	// 	if (parts.some((p) => p.trim().length === 0)) {
-	// 		return {
-	// 			success: false,
-	// 			message: "Invalid subdomain structure",
-	// 		};
-	// 	}
-
-	// 	// 3. Check if already exists in DB
-	// 	const existing = await this.db.query.subDomain.findFirst({
-	// 		where: (tbl, { eq }) => eq(tbl.name, name),
-	// 	});
-
-	// 	if (existing) {
-	// 		return {
-	// 			success: false,
-	// 			message: "Name already exists in the database",
-	// 		};
-	// 	}
-
-	// 	// 4. All good
-	// 	return {
-	// 		success: true,
-	// 		message: "Valid record name",
-	// 	};
-	// }
 	async validateRecordName(
 		name: string
 	): Promise<{ success: boolean; message?: string }> {

@@ -43,6 +43,8 @@
 "use client";
 
 import Container from "@/components/container";
+import { CreateRecordDialog } from "@/components/form/create-record-dialog";
+import { CreateVerificationDialog } from "@/components/form/create-verification-dialog";
 import { RecordTable } from "@/components/record-table";
 import { SelectRecord } from "@/db/schema";
 import { use, useEffect, useState } from "react";
@@ -107,6 +109,10 @@ const Page = ({ params }: { params: Promise<{ id: string }> }) => {
 	}
 	return (
 		<Container>
+			<div className="flex flex-row-reverse gap-2">
+				<CreateRecordDialog projectId={id} />
+				<CreateVerificationDialog projectId={id} />
+			</div>
 			<RecordTable
 				projectId={id}
 				records={records}

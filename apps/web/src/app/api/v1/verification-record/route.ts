@@ -7,33 +7,6 @@ import { DrizzleQueryError } from "drizzle-orm";
 import { NextRequest } from "next/server";
 import { z } from "zod";
 
-// const verificationReqBodySchema = InsertVerificationRecordSchema.omit(
-//     {
-//         id: true,
-//         createdAt: true,
-//         updatedAt: true,
-//         providerRecordId: true,
-//         status: true,
-//         verificationType : true,
-//         ttl: true
-//     }
-// )
-// type verificationReqBody = z.infer<typeof verificationReqBodySchema>
-
-// export async function POST(req: NextRequest, {params} : {params : {id  :string}}) {
-//     // here id is subdomain id
-//     const id = (await params).id
-//     const body = await req.json();
-//     const parsedResult = verificationReqBodySchema.safeParse(body);
-//     if (!parsedResult.success) {
-//         return Response.json(parsedResult.error, {
-//             status: 400,
-//             statusText: "Bad Request",
-//         });
-//     }
-//     const {name, content,platform,subDomainId} = parsedResult.data;
-
-// }
 
 export const verificationRecordSchema = z.object({
 	content: z.string().trim().min(1).max(255),
@@ -71,23 +44,23 @@ export async function POST(req: NextRequest) {
 			status: "VERIFIED",
 		});
 		console.log("create db", createRecordDB);
-		
 
-		// publish a qstash delete 
-		await qstashPublishDeleteVerificationRecord(createRecordDB.id, 300);
+		// publish a qstash delete
+		await qstashPublishDeleteVerificationRecord(createRecordDB.id, 10);
 
 		return Response.json(new ApiResponse(200, "Success", createRecordDB), {
 			status: 200,
 			statusText: "OK",
 		});
 	} catch (error) {
+		console.log(`error  : ${error}`);
 		if (error instanceof DrizzleQueryError) {
 			// only attempt to delete the CF record if it was created
 			if (createCFRecord && createCFRecord.id) {
 				await cloudflareService.deleteCFRecord(createCFRecord.id);
 			}
 			return Response.json(
-				new ApiError(500, "Failed to create record in db"),
+				new ApiError(500, "Failed to create record in db", error),
 				{
 					status: 500,
 					statusText: "Internal Server Error",
