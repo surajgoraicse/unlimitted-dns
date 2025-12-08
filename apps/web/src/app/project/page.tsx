@@ -10,7 +10,6 @@ import { CreateProjectDialog } from "../../components/form/create-project-dialog
 async function fetchProjects() {
 	const res = await fetch("/api/v1/subdomain");
 	const data = await res.json();
-	console.log(data);
 	return data.data || [];
 }
 
@@ -53,6 +52,7 @@ const Page = () => {
 			<ul className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
 				{projects.map((project) => (
 					<ClickableCard
+						key={project.id}
 						title={project.projectName}
 						description={project.comment || undefined}
 						status={project.status!}

@@ -159,7 +159,8 @@ class RecordRepo implements IRecordRepository {
 	}
 
 	async validateRecordName(
-		name: string
+		name: string,
+		checkExisting: boolean = true
 	): Promise<{ success: boolean; message?: string }> {
 		// 1. Basic validation — ensure the user provided only the subdomain
 		if (!name || typeof name !== "string") {
@@ -188,7 +189,7 @@ class RecordRepo implements IRecordRepository {
 			where: (tbl, { eq }) => eq(tbl.name, name),
 		});
 
-		if (existing) {
+		if (existing && checkExisting) {
 			return {
 				success: false,
 				message: "This subdomain is already taken",

@@ -19,6 +19,8 @@ export async function PUT(
 				statusText: "Bad Request",
 			});
 		}
+
+		console.log("helllloooooo1");
 		const body = await req.json();
 		const parsedResult = createRecordReqBody.safeParse(body);
 		if (!parsedResult.success) {
@@ -36,6 +38,7 @@ export async function PUT(
 				}
 			);
 		}
+		console.log("helllloooooo2");
 
 		const isTypeValid = await recordRepo.validateRecordType(
 			type,
@@ -63,8 +66,9 @@ export async function PUT(
 				}
 			);
 		}
+		console.log("helllloooooo3");
 
-		const isNameValid = await recordRepo.validateRecordName(name);
+		const isNameValid = await recordRepo.validateRecordName(name, false);
 		if (!isNameValid.success) {
 			return Response.json(
 				new ApiError(
@@ -77,6 +81,7 @@ export async function PUT(
 				}
 			);
 		}
+		console.log("helllloooooo4");
 
 		const fqdn = `${name}.${process.env.DOMAIN}`;
 		const record = await cloudflareService.updateCFRecord(
@@ -99,6 +104,8 @@ export async function PUT(
 				}
 			);
 		}
+
+		console.log("helllloooooo5");
 
 		const dbRecord = await recordRepo.updateRecordDb(
 			{
@@ -123,6 +130,7 @@ export async function PUT(
 			}
 		);
 	} catch (error) {
+		console.log(`error ---- : ${error}`);
 		return handleError(error);
 	}
 }

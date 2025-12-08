@@ -11,10 +11,12 @@ import {
 import { InsertRecordSchema, SelectRecord } from "@/db/schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Settings } from "lucide-react";
-import { Dispatch, SetStateAction } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import z from "zod";
 import ActionMenu from "./ActionMenu";
+import { CreateEditRecordDialog } from "./form/create-edit-record-dialog";
+import { Button } from "./ui/button";
 
 const CreateRecordFormSchema = InsertRecordSchema.omit({
 	id: true,
@@ -25,20 +27,14 @@ const CreateRecordFormSchema = InsertRecordSchema.omit({
 });
 type CreateRecordForm = z.infer<typeof CreateRecordFormSchema>;
 
-function handleCreateRecord(
-	data: CreateRecordForm,
-	setOpen: Dispatch<SetStateAction<boolean>>
-) {
-	console.log(JSON.stringify(data));
-	setOpen(false);
-}
 
 interface IRecordTable {
 	projectId: string;
 	records: SelectRecord[];
-	updateRecord: () => Promise<void>;
 	deleteRecord: (recordId: string) => Promise<void>;
 	refreshRecord: () => Promise<void>;
+	createRecord: (data: CreateRecordForm) => Promise<void>;
+	editRecord: (data: CreateRecordForm, recordId: string) => Promise<void>;
 	className?: string;
 }
 
@@ -46,36 +42,47 @@ export function RecordTable({
 	projectId,
 	records,
 	refreshRecord,
-	updateRecord,
 	deleteRecord,
+	createRecord,
+	editRecord,
 	className,
 }: IRecordTable) {
-	const form = useForm({
-		resolver: zodResolver(CreateRecordFormSchema),
-		defaultValues: {
-			subDomainId: projectId,
-			proxied: true,
-		},
-	});
+	const [selectedRecord, setSelectedRecord] = useState<SelectRecord | null>(null);
+	const [mode, setMode] = useState<"create" | "edit" | null>(null);
+
+
+	function onClose() {
+		setMode(null);
+		setSelectedRecord(null);
+	}
+
+	function openEdit(record: SelectRecord) {
+		setMode("edit");
+		setSelectedRecord(record);
+	}
+
+	const openCreate = () => {
+		setMode("create");
+		setSelectedRecord(null);
+	};
 
 	return (
 		<div className={`${className}`}>
+			<div className="flex flex-row-reverse gap-2">
+				<Button onClick={openCreate}>Create Record</Button>
+			</div>
 			<Table className="">
 				<TableCaption>A list of your Records.</TableCaption>
 				<TableHeader>
 					<TableRow>
-						{/* 1. Give small columns a fixed width so they don't shift */}
 						<TableHead className="w-[100px]">Type</TableHead>
 						<TableHead>Name</TableHead>
 
-						{/* 2. Allow Target to take available space, optionally max-width if needed */}
 						<TableHead>Target</TableHead>
 
-						{/* 3. Headers are text-right... */}
 						<TableHead className="text-center">TTL</TableHead>
 						<TableHead className="text-center">Proxied</TableHead>
 
-						{/* 4. Settings Icon */}
 						<TableHead className=" w-[50px]">
 							<Settings className=" mx-auto h-4 w-4" />
 						</TableHead>
@@ -109,7 +116,9 @@ export function RecordTable({
 							<TableCell>
 								<ActionMenu
 									onRefresh={refreshRecord}
-									onEdit={updateRecord}
+									onEdit={() => {
+										openEdit(record);
+									}}
 									onDelete={() => {
 										deleteRecord(record.id);
 									}}
@@ -120,6 +129,14 @@ export function RecordTable({
 					))}
 				</TableBody>
 			</Table>
+			<CreateEditRecordDialog
+				mode={mode}
+				selectedRecord={selectedRecord || null}
+				onCreate={createRecord}
+				onEdit={editRecord}
+				projectId={projectId}
+				onClose={onClose}
+			/>
 		</div>
 	);
 }

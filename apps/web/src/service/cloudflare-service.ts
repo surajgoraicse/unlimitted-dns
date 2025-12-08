@@ -83,9 +83,13 @@ class CloudflareService implements ICloudflareService {
 		return recordList;
 	}
 	async updateCFRecord(record: CFRecord, recordId: string) {
-		return await client.dns.records.edit(recordId, {
-			name: record.name,
+		if (!this.zone_id) {
+			throw new Error("Missing Cloudflare zone_id");
+		}
+
+		return await client.dns.records.update(recordId, {
 			zone_id: this.zone_id,
+			name: record.name,
 			type: record.type,
 			ttl: record.ttl,
 			proxied: record.proxied,
@@ -93,6 +97,22 @@ class CloudflareService implements ICloudflareService {
 			comment: record.comment || "",
 		});
 	}
+	async updateCFRecord2(record: CFRecord, recordId: string) {
+		if (!this.zone_id) {
+			throw new Error("Missing Cloudflare zone_id");
+		}
+
+		return await client.dns.records.update(recordId, {
+			zone_id: this.zone_id,
+			name: record.name,
+			type: record.type,
+			ttl: record.ttl,
+			proxied: record.proxied,
+			content: record.content,
+			comment: record.comment || "",
+		});
+	}
+
 	async deleteCFRecord(recordId: string) {
 		return await client.dns.records.delete(recordId, {
 			zone_id: this.zone_id,

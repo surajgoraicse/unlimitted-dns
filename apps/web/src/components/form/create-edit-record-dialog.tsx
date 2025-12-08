@@ -8,14 +8,12 @@ import {
 	DialogFooter,
 	DialogHeader,
 	DialogTitle,
-	DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { InsertRecordSchema } from "@/db/schema";
+import { InsertRecordSchema, SelectRecord } from "@/db/schema";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Dispatch, SetStateAction, useState } from "react";
+import { useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
-import { toast } from "sonner";
 import z from "zod";
 import { Checkbox } from "../ui/checkbox";
 import { Label } from "../ui/label";
@@ -28,24 +26,35 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "../ui/select";
-const CreateRecordFormSchema = InsertRecordSchema.omit({
+
+export const CreateRecordFormSchema = InsertRecordSchema.omit({
 	id: true,
 	createdAt: true,
-	providerRecordId: true,
 	updatedAt: true,
 	version: true,
 });
-type CreateRecordForm = z.infer<typeof CreateRecordFormSchema>;
+export type CreateRecordForm = z.infer<typeof CreateRecordFormSchema>;
 
-export function CreateRecordDialog({
-	projectId,
-	className,
-}: {
+interface CreateEditRecordDialogProps {
 	projectId: string;
 	className?: string;
-}) {
-	const [open, setOpen] = useState(false);
-	console.log(`project id  ${projectId}`);
+	mode: "create" | "edit" | null;
+	selectedRecord: SelectRecord | null;
+	onCreate: (data: CreateRecordForm) => Promise<void>;
+	onEdit: (data: CreateRecordForm, recordId: string) => Promise<void>;
+	onClose: () => void;
+}
+
+export function CreateEditRecordDialog({
+	projectId,
+	className,
+	mode,
+	selectedRecord,
+	onCreate,
+	onEdit,
+	onClose,
+}: CreateEditRecordDialogProps) {
+	const open = mode != null;
 
 	const form = useForm<CreateRecordForm>({
 		resolver: zodResolver(CreateRecordFormSchema),
@@ -56,60 +65,61 @@ export function CreateRecordDialog({
 		},
 	});
 
-	async function handleSubmit(
-		data: CreateRecordForm,
-		setOpen: Dispatch<SetStateAction<boolean>>
-	) {
-		console.log(JSON.stringify(data));
-		const res = await fetch("/api/v1/record", {
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-			},
-			body: JSON.stringify({
+	useEffect(() => {
+		if (mode === "edit" && selectedRecord) {
+			form.reset({
 				subDomainId: projectId,
-				name: data.name,
-				type: data.type,
-				content: data.content,
-				ttl: data.ttl,
-				proxied: data.proxied,
-				comment: data.comment,
-			}),
-		});
-		const apiData = await res.json();
-		console.log(` create apiData : ${JSON.stringify(apiData)}}`);
-		if (apiData.statusCode != 201) {
-			toast.error(apiData.message);
+				name: selectedRecord.name,
+				type: selectedRecord.type,
+				content: selectedRecord.content,
+				ttl: selectedRecord.ttl,
+				proxied: selectedRecord.proxied,
+				comment: selectedRecord.comment,
+			});
 		} else {
-			toast.success("Record Created Successfully");
+			form.reset({
+				subDomainId: projectId,
+				proxied: true,
+				ttl: 300,
+			});
 		}
-		form.reset();
-		setOpen(false);
-	}
+	}, [mode, selectedRecord, projectId, form]);
 
 	return (
 		<div className={` ${className}`}>
-			<Dialog open={open} onOpenChange={setOpen}>
-				<DialogTrigger asChild>
-					<Button variant="outline">Create Record</Button>
-				</DialogTrigger>
+			<Dialog open={open} onOpenChange={onClose}>
 				<DialogContent className="sm:max-w-[425px]">
 					<form
 						onSubmit={form.handleSubmit(
-							(data) => {
-								handleSubmit(data, setOpen);
+							async (data) => {
+								try {
+									if (mode === "edit" && selectedRecord) {
+										await onEdit(data, selectedRecord.id);
+									} else if (mode === "create") {
+										await onCreate(data);
+									}
+
+									form.reset();
+									onClose();
+								} catch (err) {
+									console.error("Submit error:", err);
+								}
 							},
 							(errors) => {
-								console.log(
-									`form error : ${JSON.stringify(errors)}`
-								);
+								console.log("Form validation errors:", errors);
 							}
 						)}
 					>
 						<DialogHeader>
-							<DialogTitle>Create Record</DialogTitle>
+							<DialogTitle>
+								{mode == "edit"
+									? "Edit Record"
+									: "Create Record"}
+							</DialogTitle>
 							<DialogDescription>
-								Create a record for your subdomain.
+								{mode == "edit"
+									? "Edit a record for your subdomain."
+									: "Create a record for your subdomain."}
 							</DialogDescription>
 						</DialogHeader>
 						<div className="grid gap-4">
